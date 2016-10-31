@@ -1,0 +1,13 @@
+cluster_nodes:
+   rac1:
+      cluster_interconnects:
+         - "11.11.11.1"
+         - "11.11.11.2"
+   rac2:
+      cluster_interconnects:
+         - "11.11.11.3"
+         - "11.11.11.4"
+
+databases_to_update:
+   - name: orcl
+     localsid: orcl1
