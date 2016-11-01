@@ -4,7 +4,6 @@ import sys
 import os
 import cx_Oracle
 import yaml
-from pprint import pprint
 
 
 
@@ -14,36 +13,42 @@ def parse_line(input):
     value = value.strip()
     return {key : value}
 
-myresource = {}
-mylist = []
-myinstances = {}
 
-with open('example.cfg') as fp:
-   for line in fp:
-      line = line.strip()
-      if line:
-         myresource.update(parse_line(line))
-      else:
-         mylist.append(myresource)
-         myresource = {}
-mylist.append(myresource)
+def read_config(configfile):
+   locresource = {}
+   loclist = []
+   with open(configfile) as fp:
+      for line in fp:
+         line = line.strip()
+         if line:
+            locresource.update(parse_line(line))
+         else:
+            loclist.append(locresource)
+            locresource = {}
+   loclist.append(locresource)
+   return loclist
 
-#pprint(mylist)
+def read_yaml(parmfile):
+   locstream = file(parmfile, 'r')
+   locyaml = yaml.load(locstream)
+   return locyaml
 
-for myelement in mylist:
-   if myelement['CARDINALITY_ID'] == '1':
-      myinstances[myelement['DB_UNIQUE_NAME']] = []
-      for key, value in myelement.iteritems():
-         if key.split('(')[0] == 'USR_ORA_INST_NAME@SERVERNAME':
-            myinstances[myelement['DB_UNIQUE_NAME']].append({'instance' : value, 'node' : key.split('(')[1].split(')')[0]})
+def get_instances(config):
+   locinstances = {}
+   for locelement in config:
+      if locelement['CARDINALITY_ID'] == '1':
+         locinstances[locelement['DB_UNIQUE_NAME']] = []
+         for key, value in locelement.iteritems():
+            if key.split('(')[0] == 'USR_ORA_INST_NAME@SERVERNAME':
+               locinstances[locelement['DB_UNIQUE_NAME']].append({'instance' : value, 'node' : key.split('(')[1].split(')')[0]})
+   return locinstances
 
+mylist = read_config('example.cfg')
 
-pprint(myinstances)
+myyaml = read_yaml('parameters.yaml')
 
+myinstances = get_instances(mylist)
 
-stream = file('parameters.yaml', 'r')
-
-myyaml = yaml.load(stream)
 
 
 for mydatabase in myyaml['databases_to_update']:
@@ -77,21 +82,3 @@ for mydatabase in myyaml['databases_to_update']:
 
    for result in cursor:
       print(result)
-
-exit ()
-
-
-
-username = 'system'
-password = 'oracle_4U'
-databaseName = "rac1/orcl"
-
-try:
-   connection = cx_Oracle.connect (username,password,databaseName)
-except cx_Oracle.DatabaseError, exception:
-   print('Failed to connect to {0}'.format(databaseName))
-   exit (1)
-
-
-
-exit()
