@@ -10,4 +10,9 @@ cluster_nodes:
 
 databases_to_update:
    - name: orcl
-     localsid: orcl1
+     connection: orcl1
+     username: sys
+     password: oracle_4U
+   - name: orcl
+     username: sys
+     password: oracle_4U
